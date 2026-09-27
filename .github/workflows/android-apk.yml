@@ -1,4 +1,5 @@
 name: Android Debug APK
+
 on:
   workflow_dispatch:
   push:
@@ -9,21 +10,39 @@ on:
       - 'gradle.properties'
       - '.github/workflows/android-apk.yml'
 
+permissions:
+  contents: read
+
 jobs:
   build:
+    name: Build installable debug APK
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-java@v5
+      - name: Checkout source
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-      - uses: gradle/actions/setup-gradle@v5
+          cache: gradle
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
       - name: Build debug APK
-        run: gradle assembleDebug
-      - name: Upload APK
+        run: gradle --no-daemon clean assembleDebug
+
+      - name: Verify APK output
+        run: |
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          ls -lh app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
-          name: droidcommand-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: droidcommand-ultimate-debug-v0.2.0
+          path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+          retention-days: 30
