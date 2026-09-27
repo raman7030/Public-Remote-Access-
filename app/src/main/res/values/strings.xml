@@ -1,0 +1,3 @@
+<resources>
+    <string name="device_admin_description">Allows the user to enable a limited device administrator capability for device-management demonstrations. It does not grant Device Owner status or remote access.</string>
+</resources>
