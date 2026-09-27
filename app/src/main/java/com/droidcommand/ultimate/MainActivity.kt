@@ -1,6 +1,9 @@
 package com.droidcommand.ultimate
 
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.BatteryManager
@@ -54,7 +57,8 @@ class MainActivity : ComponentActivity() {
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("MANAGEMENT", style = MaterialTheme.typography.titleSmall)
-                                Text("Enrollment: Not enrolled")
+                                Text("Device administrator: ${if (isAdminActive()) "Enabled" else "Not enabled"}")
+                                Text("Device Owner: ${if (isDeviceOwner()) "Yes" else "No"}")
                                 Text("Trusted administrator: Not paired")
                                 Text("Remote support: Off")
                                 Text("No remote session is active.")
@@ -63,6 +67,10 @@ class MainActivity : ComponentActivity() {
                         Button(onClick = { status = readStatus() }, modifier = Modifier.fillMaxWidth()) {
                             Text("Refresh device status")
                         }
+                        Button(onClick = { requestDeviceAdmin() }, modifier = Modifier.fillMaxWidth()) {
+                            Text("Review device-admin activation")
+                        }
+                        Text("Activation opens Android’s system confirmation screen. Device Admin is not Device Owner and does not enable remote control.", style = MaterialTheme.typography.bodySmall)
                         Text(
                             "This MVP reads local device and connectivity information. It does not yet connect to a management server, enroll as Device Owner, capture the screen, or inject remote input. Those capabilities require backend configuration and separate Android-managed enrollment or explicit user authorization.",
                             style = MaterialTheme.typography.bodySmall
@@ -75,6 +83,25 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun isAdminActive(): Boolean {
+        val manager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        return manager.isAdminActive(ComponentName(this, DroidCommandAdminReceiver::class.java))
+    }
+
+    private fun isDeviceOwner(): Boolean {
+        val manager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        return manager.isDeviceOwnerApp(packageName)
+    }
+
+    private fun requestDeviceAdmin() {
+        val component = ComponentName(this, DroidCommandAdminReceiver::class.java)
+        val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+            putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, component)
+            putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Enable the limited device-admin demo capability. You can revoke it in Android settings.")
+        }
+        startActivity(intent)
     }
 
     private fun readStatus(): LocalDeviceStatus {
