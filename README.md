@@ -2,7 +2,7 @@
 
 Android Enterprise device management and consent-based remote support.
 
-> **Status:** Starter repository / architecture scaffold. This is not yet a production-ready MDM or remote-control product.
+> **Status:** Early Android MVP. The app displays live local device telemetry. Firebase, enterprise enrollment, remote pairing, screen sharing, and remote assistance are not yet connected or implemented.
 
 ## Goals
 
